@@ -2,6 +2,7 @@ package binarycookies
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"os"
 )
@@ -14,6 +15,7 @@ var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
 // and to extract relevant information.
 type BinaryCookies struct {
 	file *os.File
+	size uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -41,4 +43,17 @@ func (b *BinaryCookies) ReadSignature() error {
 // IsValid returns True if the file signature matches valid binary cookies.
 func (b *BinaryCookies) IsValid() bool {
 	return b.ReadSignature() == nil
+}
+
+// ReadPageSize reads an integer representing the number of pages in the file.
+func (b *BinaryCookies) ReadPageSize() error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("ReadPageSize %s", err)
+	}
+
+	b.size = binary.BigEndian.Uint32(data)
+
+	return nil
 }
