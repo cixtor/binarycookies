@@ -16,6 +16,7 @@ var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
 type BinaryCookies struct {
 	file *os.File
 	size uint32
+	page []uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -54,6 +55,24 @@ func (b *BinaryCookies) ReadPageSize() error {
 	}
 
 	b.size = binary.BigEndian.Uint32(data)
+
+	return nil
+}
+
+// ReadAllPages reads the size for all pages in the file.
+func (b *BinaryCookies) ReadAllPages() error {
+	size := int(b.size)
+	data := make([]byte, 4)
+
+	b.page = make([]uint32, size)
+
+	for i := 0; i < size; i++ {
+		if _, err := b.file.Read(data); err != nil {
+			return fmt.Errorf("ReadAllPages %q -> %s", data, err)
+		}
+
+		b.page[i] = binary.BigEndian.Uint32(data)
+	}
 
 	return nil
 }
