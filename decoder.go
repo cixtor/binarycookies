@@ -24,26 +24,21 @@ func New(file *os.File) *BinaryCookies {
 	return &BinaryCookies{file: file}
 }
 
-// ReadSignature reads a number of bytes that are supposed to represent the
-// magic number of valid binary cookies. If the file format is different then
-// the function returns an error with some information.
-func (b *BinaryCookies) ReadSignature() error {
+// Validate reads a number of bytes that are supposed to represent the magic
+// number of valid binary cookies. If the file format is different then the
+// function returns an error with some information.
+func (b *BinaryCookies) Validate() error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("ReadSignature %q -> %s", data, err)
+		return fmt.Errorf("Validate %q -> %s", data, err)
 	}
 
 	if !bytes.Equal(data, magic) {
-		return fmt.Errorf("ReadSignature invalid signature %q", data)
+		return fmt.Errorf("Validate invalid signature %q", data)
 	}
 
 	return nil
-}
-
-// IsValid returns True if the file signature matches valid binary cookies.
-func (b *BinaryCookies) IsValid() bool {
-	return b.ReadSignature() == nil
 }
 
 // ReadPageSize reads an integer representing the number of pages in the file.
