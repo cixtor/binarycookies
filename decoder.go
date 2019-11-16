@@ -71,3 +71,18 @@ func (b *BinaryCookies) ReadAllPages() error {
 
 	return nil
 }
+
+// ReadPage reads one single page in the file.
+func (b *BinaryCookies) ReadPage() error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("ReadPage page tag %q -> %s", data, err)
+	}
+
+	if !bytes.Equal(data, []byte{0x0, 0x0, 0x1, 0x0}) {
+		return fmt.Errorf("ReadPage invalid page tag %q", data)
+	}
+
+	return nil
+}
