@@ -84,5 +84,20 @@ func (b *BinaryCookies) ReadPage() error {
 		return fmt.Errorf("ReadPage invalid page tag %q", data)
 	}
 
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("ReadPage number of cookies %q -> %s", data, err)
+	}
+
+	howMany := int(binary.LittleEndian.Uint32(data))
+	cookieOffsets := make([]uint32, howMany)
+
+	for i := 0; i < howMany; i++ {
+		if _, err := b.file.Read(data); err != nil {
+			return fmt.Errorf("ReadPage cookie offset %q -> %s", data, err)
+		}
+
+		cookieOffsets[i] = binary.LittleEndian.Uint32(data)
+	}
+
 	return nil
 }
