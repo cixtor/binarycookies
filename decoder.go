@@ -99,5 +99,13 @@ func (b *BinaryCookies) ReadPage() error {
 		cookieOffsets[i] = binary.LittleEndian.Uint32(data)
 	}
 
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("ReadPage page end %q -> %s", data, err)
+	}
+
+	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
+		return fmt.Errorf("ReadPage invalid page end %q", data)
+	}
+
 	return nil
 }
