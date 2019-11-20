@@ -14,9 +14,16 @@ var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
 // archive. A couple of methods are available to read and validate the archive
 // and to extract relevant information.
 type BinaryCookies struct {
-	file *os.File
-	size uint32
-	page []uint32
+	file  *os.File
+	size  uint32
+	page  []uint32
+	pages []Page
+}
+
+type Page struct {
+	Valid   bool
+	Length  uint32
+	Offsets []uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -73,39 +80,45 @@ func (b *BinaryCookies) readAllPages() error {
 }
 
 // readPage reads one single page in the file.
-func (b *BinaryCookies) readPage() ([]Cookie, error) {
+func (b *BinaryCookies) readPage() error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
-		return nil, fmt.Errorf("readPage page tag %q -> %s", data, err)
+		return fmt.Errorf("readPage page tag %q -> %s", data, err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x1, 0x0}) {
-		return nil, fmt.Errorf("readPage invalid page tag %q", data)
+		return fmt.Errorf("readPage invalid page tag %q", data)
 	}
 
 	if _, err := b.file.Read(data); err != nil {
-		return nil, fmt.Errorf("readPage number of cookies %q -> %s", data, err)
+		return fmt.Errorf("readPage number of cookies %q -> %s", data, err)
 	}
 
-	howMany := int(binary.LittleEndian.Uint32(data))
-	cookieOffsets := make([]uint32, howMany)
+	length := binary.LittleEndian.Uint32(data)
+	offsets := make([]uint32, int(length))
 
-	for i := 0; i < howMany; i++ {
+	for i := 0; i < int(length); i++ {
 		if _, err := b.file.Read(data); err != nil {
-			return nil, fmt.Errorf("readPage cookie offset %q -> %s", data, err)
+			return fmt.Errorf("readPage cookie offset %q -> %s", data, err)
 		}
 
-		cookieOffsets[i] = binary.LittleEndian.Uint32(data)
+		offsets[i] = binary.LittleEndian.Uint32(data)
 	}
 
 	if _, err := b.file.Read(data); err != nil {
-		return nil, fmt.Errorf("readPage page end %q -> %s", data, err)
+		return fmt.Errorf("readPage page end %q -> %s", data, err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
-		return nil, fmt.Errorf("readPage invalid page end %q", data)
+		return fmt.Errorf("readPage invalid page end %q", data)
 	}
+
+	b.pages = append(b.pages, Page{
+		Valid:   true,
+		Length:  length,
+		Offsets: offsets,
+	})
 
 	return nil
 }
