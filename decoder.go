@@ -79,20 +79,20 @@ func (b *BinaryCookies) readAllPages() error {
 	return nil
 }
 
-// readPage reads one single page in the file.
-func (b *BinaryCookies) readPage() error {
+// readOnePage reads one single page in the file.
+func (b *BinaryCookies) readOnePage() error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPage page tag %q -> %s", data, err)
+		return fmt.Errorf("readOnePage page tag %q -> %s", data, err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x1, 0x0}) {
-		return fmt.Errorf("readPage invalid page tag %q", data)
+		return fmt.Errorf("readOnePage invalid page tag %q", data)
 	}
 
 	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPage number of cookies %q -> %s", data, err)
+		return fmt.Errorf("readOnePage number of cookies %q -> %s", data, err)
 	}
 
 	length := binary.LittleEndian.Uint32(data)
@@ -100,18 +100,18 @@ func (b *BinaryCookies) readPage() error {
 
 	for i := 0; i < int(length); i++ {
 		if _, err := b.file.Read(data); err != nil {
-			return fmt.Errorf("readPage cookie offset %q -> %s", data, err)
+			return fmt.Errorf("readOnePage cookie offset %q -> %s", data, err)
 		}
 
 		offsets[i] = binary.LittleEndian.Uint32(data)
 	}
 
 	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPage page end %q -> %s", data, err)
+		return fmt.Errorf("readOnePage page end %q -> %s", data, err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
-		return fmt.Errorf("readPage invalid page end %q", data)
+		return fmt.Errorf("readOnePage invalid page end %q", data)
 	}
 
 	b.pages = append(b.pages, Page{
