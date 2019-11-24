@@ -67,6 +67,7 @@ func (b *BinaryCookies) readAllPages() error {
 	data := make([]byte, 4)
 
 	b.page = make([]uint32, size)
+	b.pages = make([]Page, size)
 
 	for i := 0; i < size; i++ {
 		if _, err := b.file.Read(data); err != nil {
@@ -80,7 +81,7 @@ func (b *BinaryCookies) readAllPages() error {
 }
 
 // readOnePage reads one single page in the file.
-func (b *BinaryCookies) readOnePage() error {
+func (b *BinaryCookies) readOnePage(idx uint32) error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
@@ -114,11 +115,11 @@ func (b *BinaryCookies) readOnePage() error {
 		return fmt.Errorf("readOnePage invalid page end %q", data)
 	}
 
-	b.pages = append(b.pages, Page{
+	b.pages[idx] = Page{
 		Valid:   true,
 		Length:  length,
 		Offsets: offsets,
-	})
+	}
 
 	return nil
 }
