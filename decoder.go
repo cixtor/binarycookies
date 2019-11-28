@@ -24,6 +24,10 @@ type Page struct {
 	Valid   bool
 	Length  uint32
 	Offsets []uint32
+	Cookies []Cookie
+}
+
+type Cookie struct {
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -81,7 +85,7 @@ func (b *BinaryCookies) readAllPages() error {
 }
 
 // readOnePage reads one single page in the file.
-func (b *BinaryCookies) readOnePage(idx uint32) error {
+func (b *BinaryCookies) readOnePage(index uint32) error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
@@ -115,11 +119,38 @@ func (b *BinaryCookies) readOnePage(idx uint32) error {
 		return fmt.Errorf("readOnePage invalid page end %q", data)
 	}
 
-	b.pages[idx] = Page{
+	cookies, err := b.readPageCookies(length)
+
+	if err != nil {
+		return err
+	}
+
+	b.pages[index] = Page{
 		Valid:   true,
 		Length:  length,
 		Offsets: offsets,
+		Cookies: cookies,
 	}
 
 	return nil
+}
+
+// readPageCookies reads and returns all cookies associated to a single page.
+func (b *BinaryCookies) readPageCookies(length uint32) ([]Cookie, error) {
+	cookies := make([]Cookie, length)
+
+	for i := uint32(0); i < length; i++ {
+		if cookie, err := b.readPageCookie(); err != nil {
+			return []Cookie{}, err
+		} else {
+			cookies[i] = cookie
+		}
+	}
+
+	return cookies, nil
+}
+
+// readPageCookie reads and returns one cookie associated to a single page.
+func (b *BinaryCookies) readPageCookie() (Cookie, error) {
+	return Cookie{}, nil
 }
