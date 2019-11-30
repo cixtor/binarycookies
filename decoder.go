@@ -28,6 +28,7 @@ type Page struct {
 }
 
 type Cookie struct {
+	Size         uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -152,5 +153,14 @@ func (b *BinaryCookies) readPageCookies(length uint32) ([]Cookie, error) {
 
 // readPageCookie reads and returns one cookie associated to a single page.
 func (b *BinaryCookies) readPageCookie() (Cookie, error) {
-	return Cookie{}, nil
+	var cookie Cookie
+
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie size %q -> %s", data, err)
+	}
+
+	cookie.Size = binary.LittleEndian.Uint32(data)
+	return cookie, nil
 }
