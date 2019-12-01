@@ -29,6 +29,7 @@ type Page struct {
 
 type Cookie struct {
 	Size         uint32
+	UnknownOne   []byte
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -162,5 +163,16 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.Size = binary.LittleEndian.Uint32(data)
+
+	// NOTES(cixtor): unknown field that some people believe is related to the
+	// cookie flags but so far no relevant articles online have been able to
+	// confirm this claim. It may be possible to discover the purpose of these
+	// bytes with some reverse engineering work on modern browsers.
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie unknown one %q -> %s", data, err)
+	}
+
+	cookie.UnknownOne = data
+
 	return cookie, nil
 }
