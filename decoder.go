@@ -30,6 +30,7 @@ type Page struct {
 type Cookie struct {
 	Size         uint32
 	UnknownOne   []byte
+	Flags        uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -173,6 +174,18 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.UnknownOne = data
+
+	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
+	// - 0x1 = Secure
+	// - 0x2 = Unknown
+	// - 0x4 = HttpOnly
+	// - 0x5 = Secure+HttpOnly
+	// Ref: https://en.wikipedia.org/wiki/HTTP_cookie#Terminology
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie flags %q -> %s", data, err)
+	}
+
+	cookie.Flags = binary.LittleEndian.Uint32(data)
 
 	return cookie, nil
 }
