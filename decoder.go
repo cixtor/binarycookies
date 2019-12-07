@@ -33,6 +33,7 @@ type Cookie struct {
 	Flags        uint32
 	UnknownTwo   []byte
 	DomainOffset uint32
+	NameOffset   uint32
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -204,6 +205,12 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.DomainOffset = binary.LittleEndian.Uint32(data)
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie name offset %q -> %s", data, err)
+	}
+
+	cookie.NameOffset = binary.LittleEndian.Uint32(data)
 
 	return cookie, nil
 }
