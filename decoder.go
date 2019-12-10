@@ -226,5 +226,15 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 
 	cookie.ValueOffset = binary.LittleEndian.Uint32(data)
 
+	data = make([]byte, 8)
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie end header %q -> %s", data, err)
+	}
+
+	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}) {
+		return Cookie{}, fmt.Errorf("readPageCookie invalid end header %q", data)
+	}
+
 	return cookie, nil
 }
