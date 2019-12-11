@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -36,6 +37,7 @@ type Cookie struct {
 	NameOffset   uint32
 	PathOffset   uint32
 	ValueOffset  uint32
+	Expiration   float64
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -235,6 +237,12 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}) {
 		return Cookie{}, fmt.Errorf("readPageCookie invalid end header %q", data)
 	}
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie expiration date %q -> %s", data, err)
+	}
+
+	cookie.Expiration = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	return cookie, nil
 }
