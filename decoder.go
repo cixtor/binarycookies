@@ -38,6 +38,7 @@ type Cookie struct {
 	PathOffset   uint32
 	ValueOffset  uint32
 	Expiration   float64
+	Creation     float64
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -243,6 +244,12 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.Expiration = math.Float64frombits(binary.LittleEndian.Uint64(data))
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie creation date %q -> %s", data, err)
+	}
+
+	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	return cookie, nil
 }
