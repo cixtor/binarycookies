@@ -38,6 +38,7 @@ type Cookie struct {
 	PathOffset   uint32
 	ValueOffset  uint32
 	DomainText   []byte
+	NameText     []byte
 	Expiration   float64
 	Creation     float64
 }
@@ -259,6 +260,14 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.DomainText = data
+
+	data = make([]byte, cookie.PathOffset-cookie.NameOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie name text %q -> %s", data, err)
+	}
+
+	cookie.NameText = data
 
 	return cookie, nil
 }
