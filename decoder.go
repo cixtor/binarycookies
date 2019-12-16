@@ -40,6 +40,7 @@ type Cookie struct {
 	DomainText   []byte
 	NameText     []byte
 	PathText     []byte
+	ValueText    []byte
 	Expiration   float64
 	Creation     float64
 }
@@ -277,6 +278,17 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.PathText = data
+
+	// NOTES(cixtor): read the remaining bytes corresponding to the current
+	// cookie. The size of this slice of bytes is equal to the size of the
+	// entire cookie minus the number of bytes we have read so far.
+	data = make([]byte, cookie.Size-cookie.ValueOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie value text %q -> %s", data, err)
+	}
+
+	cookie.ValueText = data
 
 	return cookie, nil
 }
