@@ -30,17 +30,17 @@ type Page struct {
 
 type Cookie struct {
 	Size         uint32
-	UnknownOne   []byte
+	unknownOne   []byte
 	Flags        uint32
-	UnknownTwo   []byte
-	DomainOffset uint32
-	NameOffset   uint32
-	PathOffset   uint32
-	ValueOffset  uint32
-	DomainText   []byte
-	NameText     []byte
-	PathText     []byte
-	ValueText    []byte
+	unknownTwo   []byte
+	domainOffset uint32
+	nameOffset   uint32
+	pathOffset   uint32
+	valueOffset  uint32
+	Domain       []byte
+	Name         []byte
+	Path         []byte
+	Value        []byte
 	Expiration   float64
 	Creation     float64
 }
@@ -185,7 +185,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		return Cookie{}, fmt.Errorf("readPageCookie unknown one %q -> %s", data, err)
 	}
 
-	cookie.UnknownOne = data
+	cookie.unknownOne = data
 
 	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
 	// - 0x1 = Secure
@@ -207,31 +207,31 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		return Cookie{}, fmt.Errorf("readPageCookie unknown two %q -> %s", data, err)
 	}
 
-	cookie.UnknownTwo = data
+	cookie.unknownTwo = data
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie domain offset %q -> %s", data, err)
 	}
 
-	cookie.DomainOffset = binary.LittleEndian.Uint32(data)
+	cookie.domainOffset = binary.LittleEndian.Uint32(data)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie name offset %q -> %s", data, err)
 	}
 
-	cookie.NameOffset = binary.LittleEndian.Uint32(data)
+	cookie.nameOffset = binary.LittleEndian.Uint32(data)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie path offset %q -> %s", data, err)
 	}
 
-	cookie.PathOffset = binary.LittleEndian.Uint32(data)
+	cookie.pathOffset = binary.LittleEndian.Uint32(data)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie value offset %q -> %s", data, err)
 	}
 
-	cookie.ValueOffset = binary.LittleEndian.Uint32(data)
+	cookie.valueOffset = binary.LittleEndian.Uint32(data)
 
 	data = make([]byte, 8)
 
@@ -255,40 +255,40 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 
 	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
-	data = make([]byte, cookie.NameOffset-cookie.DomainOffset)
+	data = make([]byte, cookie.nameOffset-cookie.domainOffset)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie domain text %q -> %s", data, err)
 	}
 
-	cookie.DomainText = data
+	cookie.Domain = data
 
-	data = make([]byte, cookie.PathOffset-cookie.NameOffset)
+	data = make([]byte, cookie.pathOffset-cookie.nameOffset)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie name text %q -> %s", data, err)
 	}
 
-	cookie.NameText = data
+	cookie.Name = data
 
-	data = make([]byte, cookie.ValueOffset-cookie.PathOffset)
+	data = make([]byte, cookie.valueOffset-cookie.pathOffset)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie path text %q -> %s", data, err)
 	}
 
-	cookie.PathText = data
+	cookie.Path = data
 
 	// NOTES(cixtor): read the remaining bytes corresponding to the current
 	// cookie. The size of this slice of bytes is equal to the size of the
 	// entire cookie minus the number of bytes we have read so far.
-	data = make([]byte, cookie.Size-cookie.ValueOffset)
+	data = make([]byte, cookie.Size-cookie.valueOffset)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie value text %q -> %s", data, err)
 	}
 
-	cookie.ValueText = data
+	cookie.Value = data
 
 	return cookie, nil
 }
