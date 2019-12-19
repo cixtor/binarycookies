@@ -29,20 +29,21 @@ type Page struct {
 }
 
 type Cookie struct {
-	Size         uint32
-	unknownOne   []byte
-	Flags        uint32
-	unknownTwo   []byte
-	domainOffset uint32
-	nameOffset   uint32
-	pathOffset   uint32
-	valueOffset  uint32
-	Domain       []byte
-	Name         []byte
-	Path         []byte
-	Value        []byte
-	Expiration   float64
-	Creation     float64
+	Size          uint32
+	unknownOne    []byte
+	Flags         uint32
+	unknownTwo    []byte
+	domainOffset  uint32
+	nameOffset    uint32
+	pathOffset    uint32
+	valueOffset   uint32
+	commentOffset uint32
+	Domain        []byte
+	Name          []byte
+	Path          []byte
+	Value         []byte
+	Expiration    float64
+	Creation      float64
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -233,15 +234,21 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 
 	cookie.valueOffset = binary.LittleEndian.Uint32(data)
 
-	data = make([]byte, 8)
+	if _, err := b.file.Read(data); err != nil {
+		return Cookie{}, fmt.Errorf("readPageCookie comment offset %q -> %s", data, err)
+	}
+
+	cookie.commentOffset = binary.LittleEndian.Uint32(data)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie end header %q -> %s", data, err)
 	}
 
-	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}) {
+	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
 		return Cookie{}, fmt.Errorf("readPageCookie invalid end header %q", data)
 	}
+
+	data = make([]byte, 8)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie expiration date %q -> %s", data, err)
