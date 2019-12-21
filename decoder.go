@@ -15,10 +15,11 @@ var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
 // archive. A couple of methods are available to read and validate the archive
 // and to extract relevant information.
 type BinaryCookies struct {
-	file  *os.File
-	size  uint32
-	page  []uint32
-	pages []Page
+	file     *os.File
+	size     uint32
+	page     []uint32
+	pages    []Page
+	checksum []byte
 }
 
 type Page struct {
@@ -309,4 +310,17 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	cookie.Value = data
 
 	return cookie, nil
+}
+
+// readChecksum reads and stores the checksum of the entire file.
+func (b *BinaryCookies) readChecksum() error {
+	data := make([]byte, 8)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readChecksum %s", err)
+	}
+
+	b.checksum = data
+
+	return nil
 }
