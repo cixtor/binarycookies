@@ -70,6 +70,31 @@ func (b *BinaryCookies) Validate() error {
 	return nil
 }
 
+// Decode reads the entire file, validates and returns all cookies.
+func (b *BinaryCookies) Decode() ([]Page, error) {
+	var err error
+
+	if err = b.readPageSize(); err != nil {
+		return nil, err
+	}
+
+	if err = b.readAllPages(); err != nil {
+		return nil, err
+	}
+
+	for index := uint32(0); index < b.size; index++ {
+		if err = b.readOnePage(index); err != nil {
+			return nil, err
+		}
+	}
+
+	if err = b.readChecksum(); err != nil {
+		return nil, err
+	}
+
+	return b.pages, nil
+}
+
 // readPageSize reads an integer representing the number of pages in the file.
 func (b *BinaryCookies) readPageSize() error {
 	data := make([]byte, 4)
