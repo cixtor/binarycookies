@@ -33,6 +33,8 @@ type Cookie struct {
 	Size          uint32
 	unknownOne    []byte
 	Flags         uint32
+	Secure        bool
+	HttpOnly      bool
 	unknownTwo    []byte
 	domainOffset  uint32
 	nameOffset    uint32
@@ -237,8 +239,8 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	cookie.unknownOne = data
 
 	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
+	// - 0x0 = None
 	// - 0x1 = Secure
-	// - 0x2 = Unknown
 	// - 0x4 = HttpOnly
 	// - 0x5 = Secure+HttpOnly
 	// Ref: https://en.wikipedia.org/wiki/HTTP_cookie#Terminology
@@ -247,6 +249,18 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	cookie.Flags = binary.LittleEndian.Uint32(data)
+
+	if cookie.Flags == 0x0 {
+		cookie.Secure = false
+		cookie.HttpOnly = false
+	} else if cookie.Flags == 0x1 {
+		cookie.Secure = true
+	} else if cookie.Flags == 0x4 {
+		cookie.HttpOnly = true
+	} else if cookie.Flags == 0x5 {
+		cookie.Secure = true
+		cookie.HttpOnly = true
+	}
 
 	// NOTES(cixtor): unknown field that some people believe is related to the
 	// cookie flags but so far no relevant articles online have been able to
