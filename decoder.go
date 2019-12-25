@@ -216,9 +216,20 @@ func (b *BinaryCookies) readPageCookies(length uint32) ([]Cookie, error) {
 	return cookies, nil
 }
 
+type cookieHelperFunction func(*Cookie) error
+
 // readPageCookie reads and returns one cookie associated to a single page.
 func (b *BinaryCookies) readPageCookie() (Cookie, error) {
+	var err error
 	var cookie Cookie
+
+	functions := []cookieHelperFunction{}
+
+	for _, fun := range functions {
+		if err = fun(&cookie); err != nil {
+			return Cookie{}, err
+		}
+	}
 
 	data := make([]byte, 4)
 
