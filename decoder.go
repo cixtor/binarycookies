@@ -223,7 +223,9 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	var err error
 	var cookie Cookie
 
-	functions := []cookieHelperFunction{}
+	functions := []cookieHelperFunction{
+		b.readPageCookieSize,
+	}
 
 	for _, fun := range functions {
 		if err = fun(&cookie); err != nil {
@@ -232,12 +234,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 4)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie size %q -> %s", data, err)
-	}
-
-	cookie.Size = binary.LittleEndian.Uint32(data)
 
 	// NOTES(cixtor): unknown field that some people believe is related to the
 	// cookie flags but so far no relevant articles online have been able to
@@ -381,6 +377,19 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	cookie.Value = data
 
 	return cookie, nil
+}
+
+// readPageCookieSize reads and stores the cookie size.
+func (b *BinaryCookies) readPageCookieSize(cookie *Cookie) error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie size %q -> %s", data, err)
+	}
+
+	cookie.Size = binary.LittleEndian.Uint32(data)
+
+	return nil
 }
 
 // readChecksum reads and stores the checksum of the entire file.
