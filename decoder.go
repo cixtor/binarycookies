@@ -225,6 +225,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 
 	functions := []cookieHelperFunction{
 		b.readPageCookieSize,
+		b.readPageCookieUnknownOne,
 	}
 
 	for _, fun := range functions {
@@ -234,16 +235,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 4)
-
-	// NOTES(cixtor): unknown field that some people believe is related to the
-	// cookie flags but so far no relevant articles online have been able to
-	// confirm this claim. It may be possible to discover the purpose of these
-	// bytes with some reverse engineering work on modern browsers.
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie unknown one %q -> %s", data, err)
-	}
-
-	cookie.unknownOne = data
 
 	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
 	// - 0x0 = None
@@ -388,6 +379,23 @@ func (b *BinaryCookies) readPageCookieSize(cookie *Cookie) error {
 	}
 
 	cookie.Size = binary.LittleEndian.Uint32(data)
+
+	return nil
+}
+
+// readPageCookieUnknownOne reads and stores one of the unknown cookie fields.
+func (b *BinaryCookies) readPageCookieUnknownOne(cookie *Cookie) error {
+	data := make([]byte, 4)
+
+	// NOTES(cixtor): unknown field that some people believe is related to the
+	// cookie flags but so far no relevant articles online have been able to
+	// confirm this claim. It may be possible to discover the purpose of these
+	// bytes with some reverse engineering work on modern browsers.
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie unknown one %q -> %s", data, err)
+	}
+
+	cookie.unknownOne = data
 
 	return nil
 }
