@@ -226,6 +226,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	functions := []cookieHelperFunction{
 		b.readPageCookieSize,
 		b.readPageCookieUnknownOne,
+		b.readPageCookieFlags,
 	}
 
 	for _, fun := range functions {
@@ -235,30 +236,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 4)
-
-	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
-	// - 0x0 = None
-	// - 0x1 = Secure
-	// - 0x4 = HttpOnly
-	// - 0x5 = Secure+HttpOnly
-	// Ref: https://en.wikipedia.org/wiki/HTTP_cookie#Terminology
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie flags %q -> %s", data, err)
-	}
-
-	cookie.Flags = binary.LittleEndian.Uint32(data)
-
-	if cookie.Flags == 0x0 {
-		cookie.Secure = false
-		cookie.HttpOnly = false
-	} else if cookie.Flags == 0x1 {
-		cookie.Secure = true
-	} else if cookie.Flags == 0x4 {
-		cookie.HttpOnly = true
-	} else if cookie.Flags == 0x5 {
-		cookie.Secure = true
-		cookie.HttpOnly = true
-	}
 
 	// NOTES(cixtor): unknown field that some people believe is related to the
 	// cookie flags but so far no relevant articles online have been able to
@@ -396,6 +373,37 @@ func (b *BinaryCookies) readPageCookieUnknownOne(cookie *Cookie) error {
 	}
 
 	cookie.unknownOne = data
+
+	return nil
+}
+
+// readPageCookieFlags reads and stores the cookie flags.
+func (b *BinaryCookies) readPageCookieFlags(cookie *Cookie) error {
+	data := make([]byte, 4)
+
+	// NOTES(cixtor): cookie flags: secure, httpOnly, sameSite.
+	// - 0x0 = None
+	// - 0x1 = Secure
+	// - 0x4 = HttpOnly
+	// - 0x5 = Secure+HttpOnly
+	// Ref: https://en.wikipedia.org/wiki/HTTP_cookie#Terminology
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie flags %q -> %s", data, err)
+	}
+
+	cookie.Flags = binary.LittleEndian.Uint32(data)
+
+	if cookie.Flags == 0x0 {
+		cookie.Secure = false
+		cookie.HttpOnly = false
+	} else if cookie.Flags == 0x1 {
+		cookie.Secure = true
+	} else if cookie.Flags == 0x4 {
+		cookie.HttpOnly = true
+	} else if cookie.Flags == 0x5 {
+		cookie.Secure = true
+		cookie.HttpOnly = true
+	}
 
 	return nil
 }
