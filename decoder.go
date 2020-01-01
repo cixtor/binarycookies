@@ -230,6 +230,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieUnknownTwo,
 		b.readPageCookieDomainOffset,
 		b.readPageCookieNameOffset,
+		b.readPageCookiePathOffset,
 	}
 
 	for _, fun := range functions {
@@ -239,12 +240,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 4)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie path offset %q -> %s", data, err)
-	}
-
-	cookie.pathOffset = binary.LittleEndian.Uint32(data)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie value offset %q -> %s", data, err)
@@ -428,6 +423,19 @@ func (b *BinaryCookies) readPageCookieNameOffset(cookie *Cookie) error {
 	}
 
 	cookie.nameOffset = binary.LittleEndian.Uint32(data)
+
+	return nil
+}
+
+// readPageCookiePathOffset reads and stores the cookie domain offset.
+func (b *BinaryCookies) readPageCookiePathOffset(cookie *Cookie) error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie path offset %q -> %s", data, err)
+	}
+
+	cookie.pathOffset = binary.LittleEndian.Uint32(data)
 
 	return nil
 }
