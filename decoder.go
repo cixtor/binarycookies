@@ -233,6 +233,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookiePathOffset,
 		b.readPageCookieValueOffset,
 		b.readPageCookieCommentOffset,
+		b.readPageCookieEndHeader,
 	}
 
 	for _, fun := range functions {
@@ -241,17 +242,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		}
 	}
 
-	data := make([]byte, 4)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie end header %q -> %s", data, err)
-	}
-
-	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
-		return Cookie{}, fmt.Errorf("readPageCookie invalid end header %q", data)
-	}
-
-	data = make([]byte, 8)
+	data := make([]byte, 8)
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie expiration date %q -> %s", data, err)
@@ -452,6 +443,21 @@ func (b *BinaryCookies) readPageCookieCommentOffset(cookie *Cookie) error {
 	}
 
 	cookie.commentOffset = binary.LittleEndian.Uint32(data)
+
+	return nil
+}
+
+// readPageCookieEndHeader reads and validates the cookie end header.
+func (b *BinaryCookies) readPageCookieEndHeader(cookie *Cookie) error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie end header %q -> %s", data, err)
+	}
+
+	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
+		return fmt.Errorf("readPageCookie invalid end header %q", data)
+	}
 
 	return nil
 }
