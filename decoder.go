@@ -395,7 +395,7 @@ func (b *BinaryCookies) readPageCookieDomainOffset(cookie *Cookie) error {
 	return nil
 }
 
-// readPageCookieNameOffset reads and stores the cookie domain offset.
+// readPageCookieNameOffset reads and stores the cookie name offset.
 func (b *BinaryCookies) readPageCookieNameOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
@@ -408,7 +408,7 @@ func (b *BinaryCookies) readPageCookieNameOffset(cookie *Cookie) error {
 	return nil
 }
 
-// readPageCookiePathOffset reads and stores the cookie domain offset.
+// readPageCookiePathOffset reads and stores the cookie path offset.
 func (b *BinaryCookies) readPageCookiePathOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
@@ -421,7 +421,7 @@ func (b *BinaryCookies) readPageCookiePathOffset(cookie *Cookie) error {
 	return nil
 }
 
-// readPageCookieValueOffset reads and stores the cookie domain offset.
+// readPageCookieValueOffset reads and stores the cookie value offset.
 func (b *BinaryCookies) readPageCookieValueOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
@@ -434,7 +434,7 @@ func (b *BinaryCookies) readPageCookieValueOffset(cookie *Cookie) error {
 	return nil
 }
 
-// readPageCookieCommentOffset reads and stores the cookie domain offset.
+// readPageCookieCommentOffset reads and stores the cookie comment offset.
 func (b *BinaryCookies) readPageCookieCommentOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
