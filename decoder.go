@@ -46,7 +46,7 @@ type Cookie struct {
 	Name          []byte
 	Path          []byte
 	Value         []byte
-	Expiration    float64
+	Expires       float64
 	Creation      float64
 }
 
@@ -234,6 +234,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieValueOffset,
 		b.readPageCookieCommentOffset,
 		b.readPageCookieEndHeader,
+		b.readPageCookieExpires,
 	}
 
 	for _, fun := range functions {
@@ -243,12 +244,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 8)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie expiration date %q -> %s", data, err)
-	}
-
-	cookie.Expiration = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	if _, err := b.file.Read(data); err != nil {
 		return Cookie{}, fmt.Errorf("readPageCookie creation date %q -> %s", data, err)
@@ -458,6 +453,19 @@ func (b *BinaryCookies) readPageCookieEndHeader(cookie *Cookie) error {
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
 		return fmt.Errorf("readPageCookie invalid end header %q", data)
 	}
+
+	return nil
+}
+
+// readPageCookieExpires reads and decodes the cookie expiration time.
+func (b *BinaryCookies) readPageCookieExpires(cookie *Cookie) error {
+	data := make([]byte, 8)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie expiration time %q -> %s", data, err)
+	}
+
+	cookie.Expires = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	return nil
 }
