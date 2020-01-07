@@ -235,6 +235,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieCommentOffset,
 		b.readPageCookieEndHeader,
 		b.readPageCookieExpires,
+		b.readPageCookieCreation,
 	}
 
 	for _, fun := range functions {
@@ -244,12 +245,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 8)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie creation date %q -> %s", data, err)
-	}
-
-	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	if cookie.commentOffset > 0 {
 		data = make([]byte, cookie.domainOffset-cookie.commentOffset)
@@ -466,6 +461,19 @@ func (b *BinaryCookies) readPageCookieExpires(cookie *Cookie) error {
 	}
 
 	cookie.Expires = math.Float64frombits(binary.LittleEndian.Uint64(data))
+
+	return nil
+}
+
+// readPageCookieCreation reads and decodes the cookie creation time.
+func (b *BinaryCookies) readPageCookieCreation(cookie *Cookie) error {
+	data := make([]byte, 8)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie creation time %q -> %s", data, err)
+	}
+
+	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
 
 	return nil
 }
