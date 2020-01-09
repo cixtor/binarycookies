@@ -236,6 +236,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieEndHeader,
 		b.readPageCookieExpires,
 		b.readPageCookieCreation,
+		b.readPageCookieComment,
 	}
 
 	for _, fun := range functions {
@@ -245,16 +246,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 8)
-
-	if cookie.commentOffset > 0 {
-		data = make([]byte, cookie.domainOffset-cookie.commentOffset)
-
-		if _, err := b.file.Read(data); err != nil {
-			return Cookie{}, fmt.Errorf("readPageCookie comment text %q -> %s", data, err)
-		}
-
-		cookie.Comment = data
-	}
 
 	data = make([]byte, cookie.nameOffset-cookie.domainOffset)
 
@@ -474,6 +465,34 @@ func (b *BinaryCookies) readPageCookieCreation(cookie *Cookie) error {
 	}
 
 	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
+
+	return nil
+}
+
+// readPageCookieComment reads and stores the cookie comment field.
+//
+// Because cookies can contain private information about a user, the Cookie
+// attribute allows an origin server to document its intended use of a cookie.
+// The user can inspect the information to decide whether to initiate or
+// continue a session with this cookie.
+//
+// Cookie comments are optional. If the comment offset is zero it means there
+// are no comments in the file associated to the cookie we are decoding. This
+// information is usually confused with the end cookie header which is always
+// 0x00000000 but it is important to distinguish between these values to read
+// the entire cookie data.
+func (b *BinaryCookies) readPageCookieComment(cookie *Cookie) error {
+	if cookie.commentOffset == 0 {
+		return nil
+	}
+
+	data := make([]byte, cookie.domainOffset-cookie.commentOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie comment text %q -> %s", data, err)
+	}
+
+	cookie.Comment = data
 
 	return nil
 }
