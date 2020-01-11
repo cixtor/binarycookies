@@ -238,6 +238,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieCreation,
 		b.readPageCookieComment,
 		b.readPageCookieDomain,
+		b.readPageCookieName,
 	}
 
 	for _, fun := range functions {
@@ -247,14 +248,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 8)
-
-	data = make([]byte, cookie.pathOffset-cookie.nameOffset)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie name text %q -> %s", data, err)
-	}
-
-	cookie.Name = data
 
 	data = make([]byte, cookie.valueOffset-cookie.pathOffset)
 
@@ -499,6 +492,19 @@ func (b *BinaryCookies) readPageCookieDomain(cookie *Cookie) error {
 	}
 
 	cookie.Domain = data
+
+	return nil
+}
+
+// readPageCookieName reads and stores the cookie name field.
+func (b *BinaryCookies) readPageCookieName(cookie *Cookie) error {
+	data := make([]byte, cookie.pathOffset-cookie.nameOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie name text %q -> %s", data, err)
+	}
+
+	cookie.Name = data
 
 	return nil
 }
