@@ -239,6 +239,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieComment,
 		b.readPageCookieDomain,
 		b.readPageCookieName,
+		b.readPageCookiePath,
 	}
 
 	for _, fun := range functions {
@@ -248,14 +249,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	data := make([]byte, 8)
-
-	data = make([]byte, cookie.valueOffset-cookie.pathOffset)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie path text %q -> %s", data, err)
-	}
-
-	cookie.Path = data
 
 	// NOTES(cixtor): read the remaining bytes corresponding to the current
 	// cookie. The size of this slice of bytes is equal to the size of the
@@ -505,6 +498,19 @@ func (b *BinaryCookies) readPageCookieName(cookie *Cookie) error {
 	}
 
 	cookie.Name = data
+
+	return nil
+}
+
+// readPageCookiePath reads and stores the cookie path field.
+func (b *BinaryCookies) readPageCookiePath(cookie *Cookie) error {
+	data := make([]byte, cookie.valueOffset-cookie.pathOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie path text %q -> %s", data, err)
+	}
+
+	cookie.Path = data
 
 	return nil
 }
