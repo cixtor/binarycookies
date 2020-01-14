@@ -240,6 +240,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieDomain,
 		b.readPageCookieName,
 		b.readPageCookiePath,
+		b.readPageCookieValue,
 	}
 
 	for _, fun := range functions {
@@ -247,19 +248,6 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 			return Cookie{}, err
 		}
 	}
-
-	data := make([]byte, 8)
-
-	// NOTES(cixtor): read the remaining bytes corresponding to the current
-	// cookie. The size of this slice of bytes is equal to the size of the
-	// entire cookie minus the number of bytes we have read so far.
-	data = make([]byte, cookie.Size-cookie.valueOffset)
-
-	if _, err := b.file.Read(data); err != nil {
-		return Cookie{}, fmt.Errorf("readPageCookie value text %q -> %s", data, err)
-	}
-
-	cookie.Value = data
 
 	return cookie, nil
 }
@@ -511,6 +499,19 @@ func (b *BinaryCookies) readPageCookiePath(cookie *Cookie) error {
 	}
 
 	cookie.Path = data
+
+	return nil
+}
+
+// readPageCookieValue reads and stores the cookie value field.
+func (b *BinaryCookies) readPageCookieValue(cookie *Cookie) error {
+	data := make([]byte, cookie.Size-cookie.valueOffset)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie value text %q -> %s", data, err)
+	}
+
+	cookie.Value = data
 
 	return nil
 }
