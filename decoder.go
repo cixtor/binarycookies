@@ -6,10 +6,14 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 )
 
 // magic are the bytes representing the signature of valid binary cookies.
 var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
+
+// timePadding is the Unix timestamp until Jan 2001 when Mac epoch starts.
+var timePadding float64 = 978307200
 
 // BinaryCookies is a struct representing relevant parts of the binary cookies
 // archive. A couple of methods are available to read and validate the archive
@@ -46,7 +50,7 @@ type Cookie struct {
 	Name          []byte
 	Path          []byte
 	Value         []byte
-	Expires       float64
+	Expires       time.Time
 	Creation      float64
 }
 
@@ -418,7 +422,9 @@ func (b *BinaryCookies) readPageCookieExpires(cookie *Cookie) error {
 		return fmt.Errorf("readPageCookie expiration time %q -> %s", data, err)
 	}
 
-	cookie.Expires = math.Float64frombits(binary.LittleEndian.Uint64(data))
+	// NOTES(cixtor): convert Mac epoch time into a Unix timestamp.
+	number := math.Float64frombits(binary.LittleEndian.Uint64(data))
+	cookie.Expires = time.Unix(int64(number+timePadding), 0)
 
 	return nil
 }
