@@ -51,7 +51,7 @@ type Cookie struct {
 	Path          []byte
 	Value         []byte
 	Expires       time.Time
-	Creation      float64
+	Creation      time.Time
 }
 
 // New returns an instance of the Binary Cookies class.
@@ -437,7 +437,9 @@ func (b *BinaryCookies) readPageCookieCreation(cookie *Cookie) error {
 		return fmt.Errorf("readPageCookie creation time %q -> %s", data, err)
 	}
 
-	cookie.Creation = math.Float64frombits(binary.LittleEndian.Uint64(data))
+	// NOTES(cixtor): convert Mac epoch time into a Unix timestamp.
+	number := math.Float64frombits(binary.LittleEndian.Uint64(data))
+	cookie.Creation = time.Unix(int64(number+timePadding), 0)
 
 	return nil
 }
