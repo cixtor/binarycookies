@@ -5,59 +5,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
-	"os"
 	"time"
 )
-
-// magic are the bytes representing the signature of valid binary cookies.
-var magic []byte = []byte{0x63, 0x6f, 0x6f, 0x6b}
-
-// timePadding is the Unix timestamp until Jan 2001 when Mac epoch starts.
-var timePadding float64 = 978307200
-
-// BinaryCookies is a struct representing relevant parts of the binary cookies
-// archive. A couple of methods are available to read and validate the archive
-// and to extract relevant information.
-type BinaryCookies struct {
-	file     *os.File
-	size     uint32
-	page     []uint32
-	pages    []Page
-	checksum []byte
-}
-
-type Page struct {
-	Valid   bool
-	Length  uint32
-	Offsets []uint32
-	Cookies []Cookie
-}
-
-type Cookie struct {
-	Size          uint32
-	unknownOne    []byte
-	Flags         uint32
-	Secure        bool
-	HttpOnly      bool
-	unknownTwo    []byte
-	domainOffset  uint32
-	nameOffset    uint32
-	pathOffset    uint32
-	valueOffset   uint32
-	commentOffset uint32
-	Comment       []byte
-	Domain        []byte
-	Name          []byte
-	Path          []byte
-	Value         []byte
-	Expires       time.Time
-	Creation      time.Time
-}
-
-// New returns an instance of the Binary Cookies class.
-func New(file *os.File) *BinaryCookies {
-	return &BinaryCookies{file: file}
-}
 
 // Validate reads a number of bytes that are supposed to represent the magic
 // number of valid binary cookies. If the file format is different then the
@@ -219,8 +168,6 @@ func (b *BinaryCookies) readPageCookies(length uint32) ([]Cookie, error) {
 
 	return cookies, nil
 }
-
-type cookieHelperFunction func(*Cookie) error
 
 // readPageCookie reads and returns one cookie associated to a single page.
 func (b *BinaryCookies) readPageCookie() (Cookie, error) {
