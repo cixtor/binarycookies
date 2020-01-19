@@ -8,26 +8,13 @@ import (
 	"time"
 )
 
-// Validate reads a number of bytes that are supposed to represent the magic
-// number of valid binary cookies. If the file format is different then the
-// function returns an error with some information.
-func (b *BinaryCookies) Validate() error {
-	data := make([]byte, 4)
-
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("Validate %q -> %s", data, err)
-	}
-
-	if !bytes.Equal(data, magic) {
-		return fmt.Errorf("Validate invalid signature %q", data)
-	}
-
-	return nil
-}
-
 // Decode reads the entire file, validates and returns all cookies.
 func (b *BinaryCookies) Decode() ([]Page, error) {
 	var err error
+
+	if err = b.readSignature(); err != nil {
+		return nil, err
+	}
 
 	if err = b.readPageSize(); err != nil {
 		return nil, err
@@ -69,6 +56,23 @@ func (b *BinaryCookies) Decode() ([]Page, error) {
 	// }
 
 	return b.pages, nil
+}
+
+// readSignature reads a number of bytes that are supposed to represent the
+// magic number of valid binary cookies. If the file format is different then
+// the function returns an error with some information.
+func (b *BinaryCookies) readSignature() error {
+	data := make([]byte, 4)
+
+	if _, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readSignature %q -> %s", data, err)
+	}
+
+	if !bytes.Equal(data, magic) {
+		return fmt.Errorf("readSignature invalid signature %q", data)
+	}
+
+	return nil
 }
 
 // readPageSize reads an integer representing the number of pages in the file.
