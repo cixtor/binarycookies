@@ -1,7 +1,7 @@
 package binarycookies
 
 import (
-	"os"
+	"io"
 	"time"
 )
 
@@ -15,7 +15,7 @@ var timePadding float64 = 978307200
 // archive. A couple of methods are available to read and validate the archive
 // and to extract relevant information.
 type BinaryCookies struct {
-	file     *os.File
+	file     io.Reader
 	size     uint32
 	page     []uint32
 	pages    []Page
@@ -75,6 +75,6 @@ type Cookie struct {
 type cookieHelperFunction func(*Cookie) error
 
 // New returns an instance of the Binary Cookies class.
-func New(file *os.File) *BinaryCookies {
-	return &BinaryCookies{file: file}
+func New(reader io.Reader) *BinaryCookies {
+	return &BinaryCookies{file: reader}
 }
