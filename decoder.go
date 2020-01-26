@@ -160,14 +160,17 @@ func (b *BinaryCookies) readOnePage(index uint32) error {
 
 // readPageCookies reads and returns all cookies associated to a single page.
 func (b *BinaryCookies) readPageCookies(length uint32) ([]Cookie, error) {
+	var err error
+	var cookie Cookie
+
 	cookies := make([]Cookie, length)
 
 	for i := uint32(0); i < length; i++ {
-		if cookie, err := b.readPageCookie(); err != nil {
+		if cookie, err = b.readPageCookie(); err != nil {
 			return []Cookie{}, err
-		} else {
-			cookies[i] = cookie
 		}
+
+		cookies[i] = cookie
 	}
 
 	return cookies, nil
