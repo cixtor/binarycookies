@@ -434,7 +434,8 @@ func (b *BinaryCookies) readPageCookieDomain(cookie *Cookie) error {
 		return fmt.Errorf("readPageCookie domain text %q -> %s", data, err)
 	}
 
-	cookie.Domain = data
+	// NOTES(cixtor): fix null-terminated string.
+	cookie.Domain = data[0 : len(data)-1]
 
 	return nil
 }
