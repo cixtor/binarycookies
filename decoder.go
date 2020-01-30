@@ -476,7 +476,8 @@ func (b *BinaryCookies) readPageCookieValue(cookie *Cookie) error {
 		return fmt.Errorf("readPageCookie value text %q -> %s", data, err)
 	}
 
-	cookie.Value = data
+	// NOTES(cixtor): fix null-terminated string.
+	cookie.Value = data[0 : len(data)-1]
 
 	return nil
 }
