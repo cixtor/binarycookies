@@ -1,4 +1,4 @@
-# Binary Cookies
+# Binary Cookies [![GoReport](https://goreportcard.com/badge/github.com/cixtor/binarycookies)](https://goreportcard.com/report/github.com/cixtor/binarycookies) [![GoDoc](https://godoc.org/github.com/cixtor/binarycookies?status.svg)](https://godoc.org/github.com/cixtor/binarycookies)
 
 Go (golang) implementation of an encoder and decoder for the Binary Cookies file format used by Safari and other applications based on WebKit to store HTTP cookies. A CLI program is also included to allow you to inspect and manipulate the binary cookies from the commodity of your Terminal.
 
