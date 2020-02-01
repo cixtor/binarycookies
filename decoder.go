@@ -149,7 +149,6 @@ func (b *BinaryCookies) readOnePage(index uint32) error {
 	}
 
 	b.pages[index] = Page{
-		Valid:   true,
 		Length:  length,
 		Offsets: offsets,
 		Cookies: cookies,

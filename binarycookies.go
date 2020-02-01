@@ -26,7 +26,6 @@ type BinaryCookies struct {
 // to the same domain. A binary cookies archive contains all the cookies for
 // all the pages the user has ever visited.
 type Page struct {
-	Valid   bool
 	Length  uint32
 	Offsets []uint32
 	Cookies []Cookie
