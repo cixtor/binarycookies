@@ -11,4 +11,12 @@ func checkCookiePage(t *testing.T, data []byte, index int, expected Page) {
 	if _, err := cook.Decode(); err != nil {
 		t.Fatal(err)
 	}
+
+	if len(cook.pages) < index {
+		t.Fatalf("page at index #%d is missing", index)
+	}
+
+	if cook.pages[index].Length != expected.Length {
+		t.Fatalf("incorrect number of cookies at pages[%d]\n- %d\n+ %d", index, expected.Length, cook.pages[index].Length)
+	}
 }
