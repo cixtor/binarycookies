@@ -29,4 +29,10 @@ func checkCookiePage(t *testing.T, data []byte, index int, expected Page) {
 			t.Fatalf("incorrect cookie offset at pages[%d]\n- %#v\n+ %#v\n! check index #%d", index, expected.Offsets, cook.pages[index].Offsets, idx)
 		}
 	}
+
+	for idx, cookie := range expected.Cookies {
+		if cook.pages[index].Cookies[idx].Size != cookie.Size {
+			t.Fatalf("incorrect cookie size at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
+		}
+	}
 }
