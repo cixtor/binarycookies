@@ -34,5 +34,9 @@ func checkCookiePage(t *testing.T, data []byte, index int, expected Page) {
 		if cook.pages[index].Cookies[idx].Size != cookie.Size {
 			t.Fatalf("incorrect cookie size at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
 		}
+
+		if cook.pages[index].Cookies[idx].Secure != cookie.Secure {
+			t.Fatalf("incorrect cookie secure at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
+		}
 	}
 }
