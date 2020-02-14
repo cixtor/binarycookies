@@ -42,5 +42,9 @@ func checkCookiePage(t *testing.T, data []byte, index int, expected Page) {
 		if cook.pages[index].Cookies[idx].HttpOnly != cookie.HttpOnly {
 			t.Fatalf("incorrect cookie httpOnly at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
 		}
+
+		if !bytes.Equal(cook.pages[index].Cookies[idx].Comment, cookie.Comment) {
+			t.Fatalf("incorrect cookie comment at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
+		}
 	}
 }
