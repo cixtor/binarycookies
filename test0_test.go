@@ -54,5 +54,9 @@ func checkCookiePage(t *testing.T, data []byte, index int, expected Page) {
 		if !bytes.Equal(cook.pages[index].Cookies[idx].Name, cookie.Name) {
 			t.Fatalf("incorrect cookie name at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
 		}
+
+		if !bytes.Equal(cook.pages[index].Cookies[idx].Path, cookie.Path) {
+			t.Fatalf("incorrect cookie path at pages[%d].Cookies[%d]\n- %#v\n+ %#v", index, idx, cookie, cook.pages[index].Cookies[idx])
+		}
 	}
 }
