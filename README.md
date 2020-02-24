@@ -17,3 +17,11 @@ If you want to install the command line interface (CLI):
 ```sh
 go get github.com/cixtor/binarycookies/cmd/binarycookies
 ```
+
+## Example
+
+The majority of macOS applications store their web cookies in `~/Library/Cookies/` while others _—using containers—_ do so in `~/Library/Containers/<APP_ID>/Data/Library/Cookies/`. We can use simple Unix commands to find all these files and dump their content using the CLI, like so:
+
+```sh
+find ~/Library/Cookies/ -name "*.binarycookies" -exec binarycookies {} \;
+```
