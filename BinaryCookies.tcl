@@ -47,3 +47,7 @@ for {set pageIndex 0} {$pageIndex < $size} {incr pageIndex} {
 		}
 	}
 }
+
+section "Footer" {
+	bytes 8 "Checksum"
+}
