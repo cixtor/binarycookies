@@ -193,6 +193,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 		b.readPageCookieEndHeader,
 		b.readPageCookieExpires,
 		b.readPageCookieCreation,
+		b.checkCookieOverallSize,
 		b.readPageCookieComment,
 		b.readPageCookieDomain,
 		b.readPageCookieName,
@@ -207,6 +208,69 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 	}
 
 	return cookie, nil
+}
+
+// RFC 2965
+// HTTP State Management Mechanism
+// https://www.ietf.org/rfc/rfc2965.txt
+//
+// Section 5.3 Implementation Limits
+//
+// Practical user agent implementations have limits on the number and
+// size of cookies that they can store.  In general, user agents' cookie
+// support should have no fixed limits.  They should strive to store as
+// many frequently-used cookies as possible.  Furthermore, general-use
+// user agents SHOULD provide each of the following minimum capabilities
+// individually, although not necessarily simultaneously:
+//
+//    *  at least 300 cookies
+//
+//    *  at least 4096 bytes per cookie (as measured by the characters
+//       that comprise the cookie non-terminal in the syntax description
+//       of the Set-Cookie2 header, and as received in the Set-Cookie2
+//       header)
+//
+//    *  at least 20 cookies per unique host or domain name
+//
+// User agents created for specific purposes or for limited-capacity
+// devices SHOULD provide at least 20 cookies of 4096 bytes, to ensure
+// that the user can interact with a session-based origin server.
+const maxCookieSize = 4096
+
+func (b *BinaryCookies) checkCookieOverallSize(cookie *Cookie) error {
+	var total uint32
+
+	sizes := []uint32{
+		/* Cookie Domain  */ (cookie.domainOffset - cookie.commentOffset),
+		/* Cookie Name    */ (cookie.nameOffset - cookie.domainOffset),
+		/* Cookie Path    */ (cookie.pathOffset - cookie.nameOffset),
+		/* Cookie Value   */ (cookie.valueOffset - cookie.pathOffset),
+		/* Cookie Comment */ (cookie.Size - cookie.valueOffset),
+	}
+
+	// Check if cookie component in case of uint overflow.
+	for i, n := range sizes {
+		if n > maxCookieSize {
+			return fmt.Errorf("maximum cookie size exceeded in component[%d] (%d > 4096)", i, cookie.Size)
+		}
+
+		total += n
+	}
+
+	if total > maxCookieSize {
+		// Cookie Limitations
+		//
+		// Most browsers support cookies of up to 4096 bytes. Because of this
+		// small limit, cookies are best used to store small amounts of data,
+		// or better yet, an identifier such as a user ID. The user ID can
+		// then be used to identify the user and read user information from a
+		// database or other data store.
+		//
+		// http://msdn.microsoft.com/en-us/library/ms178194.aspx
+		return fmt.Errorf("maximum overall cookie size exceeded %d > 4096", cookie.Size)
+	}
+
+	return nil
 }
 
 // readPageCookieSize reads and stores the cookie size.
