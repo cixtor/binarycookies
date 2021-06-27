@@ -25,7 +25,7 @@ func (b *BinaryCookies) Decode() ([]Page, error) {
 	}
 
 	for index := uint32(0); index < b.size; index++ {
-		if err = b.readOnePage(index); err != nil {
+		if err = b.readOnePage(); err != nil {
 			return nil, err
 		}
 	}
@@ -93,22 +93,19 @@ func (b *BinaryCookies) readAllPages() error {
 	size := int(b.size)
 	data := make([]byte, 4)
 
-	b.page = make([]uint32, size)
-	b.pages = make([]Page, size)
-
 	for i := 0; i < size; i++ {
 		if _, err := b.file.Read(data); err != nil {
 			return fmt.Errorf("readAllPages %q -> %s", data, err)
 		}
 
-		b.page[i] = binary.BigEndian.Uint32(data)
+		b.page = append(b.page, binary.BigEndian.Uint32(data))
 	}
 
 	return nil
 }
 
 // readOnePage reads one single page in the file.
-func (b *BinaryCookies) readOnePage(index uint32) error {
+func (b *BinaryCookies) readOnePage() error {
 	data := make([]byte, 4)
 
 	if _, err := b.file.Read(data); err != nil {
@@ -148,11 +145,11 @@ func (b *BinaryCookies) readOnePage(index uint32) error {
 		return err
 	}
 
-	b.pages[index] = Page{
+	b.pages = append(b.pages, Page{
 		Length:  length,
 		Offsets: offsets,
 		Cookies: cookies,
-	}
+	})
 
 	return nil
 }

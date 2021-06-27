@@ -75,5 +75,9 @@ type cookieHelperFunction func(*Cookie) error
 
 // New returns an instance of the Binary Cookies class.
 func New(reader io.Reader) *BinaryCookies {
-	return &BinaryCookies{file: reader}
+	return &BinaryCookies{
+		file:  reader,
+		page:  []uint32{},
+		pages: []Page{},
+	}
 }
