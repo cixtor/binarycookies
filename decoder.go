@@ -64,8 +64,8 @@ func (b *BinaryCookies) Decode() ([]Page, error) {
 func (b *BinaryCookies) readSignature() error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readSignature %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readSignature %q; %w", data[:n], err)
 	}
 
 	if !bytes.Equal(data, magic) {
@@ -79,8 +79,8 @@ func (b *BinaryCookies) readSignature() error {
 func (b *BinaryCookies) readPageSize() error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageSize %s", err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageSize from %q; %w", data[:n], err)
 	}
 
 	b.size = binary.BigEndian.Uint32(data)
@@ -94,8 +94,8 @@ func (b *BinaryCookies) readAllPages() error {
 	data := make([]byte, 4)
 
 	for i := 0; i < size; i++ {
-		if _, err := b.file.Read(data); err != nil {
-			return fmt.Errorf("readAllPages %q -> %s", data, err)
+		if n, err := b.file.Read(data); err != nil {
+			return fmt.Errorf("readAllPages %q; %w", data[:n], err)
 		}
 
 		b.page = append(b.page, binary.BigEndian.Uint32(data))
@@ -108,31 +108,31 @@ func (b *BinaryCookies) readAllPages() error {
 func (b *BinaryCookies) readOnePage() error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readOnePage page tag %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readOnePage page tag %q; %w", data[:n], err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x1, 0x0}) {
 		return fmt.Errorf("readOnePage invalid page tag %q", data)
 	}
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readOnePage number of cookies %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readOnePage number of cookies %q; %w", data[:n], err)
 	}
 
 	length := binary.LittleEndian.Uint32(data)
 	offsets := make([]uint32, int(length))
 
 	for i := 0; i < int(length); i++ {
-		if _, err := b.file.Read(data); err != nil {
-			return fmt.Errorf("readOnePage cookie offset %q -> %s", data, err)
+		if n, err := b.file.Read(data); err != nil {
+			return fmt.Errorf("readOnePage cookie offset %q; %w", data[:n], err)
 		}
 
 		offsets[i] = binary.LittleEndian.Uint32(data)
 	}
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readOnePage page end %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readOnePage page end %q; %w", data[:n], err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
@@ -248,7 +248,7 @@ func (b *BinaryCookies) checkCookieOverallSize(cookie *Cookie) error {
 	// Check if cookie component in case of uint overflow.
 	for i, n := range sizes {
 		if n > maxCookieSize {
-			return fmt.Errorf("maximum cookie size exceeded in component[%d] (%d > 4096)", i, cookie.Size)
+			return fmt.Errorf("maximum cookie size exceeded in component[%d] (%d > 4096)", i, n)
 		}
 
 		total += n
@@ -264,7 +264,7 @@ func (b *BinaryCookies) checkCookieOverallSize(cookie *Cookie) error {
 		// database or other data store.
 		//
 		// http://msdn.microsoft.com/en-us/library/ms178194.aspx
-		return fmt.Errorf("maximum overall cookie size exceeded %d > 4096", cookie.Size)
+		return fmt.Errorf("maximum overall cookie size exceeded %d > 4096", total)
 	}
 
 	return nil
@@ -274,8 +274,8 @@ func (b *BinaryCookies) checkCookieOverallSize(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieSize(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie size %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie size %q; %w", data[:n], err)
 	}
 
 	cookie.Size = binary.LittleEndian.Uint32(data)
@@ -291,8 +291,8 @@ func (b *BinaryCookies) readPageCookieUnknownOne(cookie *Cookie) error {
 	// cookie flags but so far no relevant articles online have been able to
 	// confirm this claim. It may be possible to discover the purpose of these
 	// bytes with some reverse engineering work on modern browsers.
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie unknown one %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie unknown one %q; %w", data[:n], err)
 	}
 
 	cookie.unknownOne = data
@@ -310,8 +310,8 @@ func (b *BinaryCookies) readPageCookieFlags(cookie *Cookie) error {
 	// - 0x4 = HttpOnly
 	// - 0x5 = Secure+HttpOnly
 	// Ref: https://en.wikipedia.org/wiki/HTTP_cookie#Terminology
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie flags %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie flags %q; %w", data[:n], err)
 	}
 
 	cookie.Flags = binary.LittleEndian.Uint32(data)
@@ -339,8 +339,8 @@ func (b *BinaryCookies) readPageCookieUnknownTwo(cookie *Cookie) error {
 	// cookie flags but so far no relevant articles online have been able to
 	// confirm this claim. It may be possible to discover the purpose of these
 	// bytes with some reverse engineering work on modern browsers.
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie unknown two %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie unknown two %q; %w", data[:n], err)
 	}
 
 	cookie.unknownTwo = data
@@ -352,8 +352,8 @@ func (b *BinaryCookies) readPageCookieUnknownTwo(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieDomainOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie domain offset %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie domain offset %q; %w", data[:n], err)
 	}
 
 	cookie.domainOffset = binary.LittleEndian.Uint32(data)
@@ -365,8 +365,8 @@ func (b *BinaryCookies) readPageCookieDomainOffset(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieNameOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie name offset %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie name offset %q; %w", data[:n], err)
 	}
 
 	cookie.nameOffset = binary.LittleEndian.Uint32(data)
@@ -378,8 +378,8 @@ func (b *BinaryCookies) readPageCookieNameOffset(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookiePathOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie path offset %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie path offset %q; %w", data[:n], err)
 	}
 
 	cookie.pathOffset = binary.LittleEndian.Uint32(data)
@@ -391,8 +391,8 @@ func (b *BinaryCookies) readPageCookiePathOffset(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieValueOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie value offset %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie value offset %q; %w", data[:n], err)
 	}
 
 	cookie.valueOffset = binary.LittleEndian.Uint32(data)
@@ -404,8 +404,8 @@ func (b *BinaryCookies) readPageCookieValueOffset(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieCommentOffset(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie comment offset %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie comment offset %q; %w", data[:n], err)
 	}
 
 	cookie.commentOffset = binary.LittleEndian.Uint32(data)
@@ -417,8 +417,8 @@ func (b *BinaryCookies) readPageCookieCommentOffset(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieEndHeader(cookie *Cookie) error {
 	data := make([]byte, 4)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie end header %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie end header %q; %w", data[:n], err)
 	}
 
 	if !bytes.Equal(data, []byte{0x0, 0x0, 0x0, 0x0}) {
@@ -432,8 +432,8 @@ func (b *BinaryCookies) readPageCookieEndHeader(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieExpires(cookie *Cookie) error {
 	data := make([]byte, 8)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie expiration time %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie expiration time %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): convert Mac epoch time into a Unix timestamp.
@@ -447,8 +447,8 @@ func (b *BinaryCookies) readPageCookieExpires(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieCreation(cookie *Cookie) error {
 	data := make([]byte, 8)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie creation time %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie creation time %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): convert Mac epoch time into a Unix timestamp.
@@ -477,8 +477,8 @@ func (b *BinaryCookies) readPageCookieComment(cookie *Cookie) error {
 
 	data := make([]byte, cookie.domainOffset-cookie.commentOffset)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie comment text %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie comment text %q; %w", data[:n], err)
 	}
 
 	cookie.Comment = data
@@ -490,8 +490,8 @@ func (b *BinaryCookies) readPageCookieComment(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieDomain(cookie *Cookie) error {
 	data := make([]byte, cookie.nameOffset-cookie.domainOffset)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie domain text %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie domain text %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): fix null-terminated string.
@@ -504,8 +504,8 @@ func (b *BinaryCookies) readPageCookieDomain(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieName(cookie *Cookie) error {
 	data := make([]byte, cookie.pathOffset-cookie.nameOffset)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie name text %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie name text %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): fix null-terminated string.
@@ -518,8 +518,8 @@ func (b *BinaryCookies) readPageCookieName(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookiePath(cookie *Cookie) error {
 	data := make([]byte, cookie.valueOffset-cookie.pathOffset)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie path text %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie path text %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): fix null-terminated string.
@@ -532,8 +532,8 @@ func (b *BinaryCookies) readPageCookiePath(cookie *Cookie) error {
 func (b *BinaryCookies) readPageCookieValue(cookie *Cookie) error {
 	data := make([]byte, cookie.Size-cookie.valueOffset)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readPageCookie value text %q -> %s", data, err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readPageCookie value text %q; %w", data[:n], err)
 	}
 
 	// NOTES(cixtor): fix null-terminated string.
@@ -546,8 +546,8 @@ func (b *BinaryCookies) readPageCookieValue(cookie *Cookie) error {
 func (b *BinaryCookies) readChecksum() error {
 	data := make([]byte, 8)
 
-	if _, err := b.file.Read(data); err != nil {
-		return fmt.Errorf("readChecksum %s", err)
+	if n, err := b.file.Read(data); err != nil {
+		return fmt.Errorf("readChecksum from %q; %w", data[:n], err)
 	}
 
 	b.checksum = data
