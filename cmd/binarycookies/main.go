@@ -15,7 +15,7 @@ var filter string
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("Usage: binarycookies [-netscape] [-re regexp] [/path/to/Cookies.binarycookies]")
+		fmt.Println("Usage: binarycookies [-netscape] [-filter regexp] [/path/to/Cookies.binarycookies]")
 		flag.PrintDefaults()
 	}
 
