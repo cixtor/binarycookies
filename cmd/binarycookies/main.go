@@ -45,6 +45,8 @@ func main() {
 		return
 	}
 
+	defer file.Close()
+
 	cook := binarycookies.New(file)
 
 	pages, err := cook.Decode()
