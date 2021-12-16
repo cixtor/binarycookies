@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/cixtor/binarycookies"
 )
@@ -80,7 +81,7 @@ func main() {
 			} else {
 				fmt.Printf(
 					"%s %s %s %s %s",
-					cookie.Expires.Format(`2006-01-02 15:04:05`),
+					cookie.Expires.Format(time.DateTime),
 					cookie.Domain,
 					cookie.Path,
 					cookie.Name,
