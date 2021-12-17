@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,15 +11,17 @@ import (
 )
 
 var filename string
+var flagJSON bool
 var netscape bool
 var filter string
 
 func main() {
 	flag.Usage = func() {
-		fmt.Println("Usage: binarycookies [-netscape] [-filter regexp] [/path/to/Cookies.binarycookies]")
+		fmt.Println("Usage: binarycookies [-json|-netscape] [-filter regexp] [/path/to/Cookies.binarycookies]")
 		flag.PrintDefaults()
 	}
 
+	flag.BoolVar(&flagJSON, "json", false, "print the output in JSON format")
 	flag.BoolVar(&netscape, "netscape", false, "use the Netscape cookie format")
 	flag.StringVar(&filter, "filter", "", "filter results by regexp on domain")
 
@@ -26,6 +29,11 @@ func main() {
 
 	if filename = flag.Arg(0); filename == "" {
 		flag.Usage()
+		return
+	}
+
+	if flagJSON && netscape {
+		fmt.Println("only one of -json or -netscape")
 		return
 	}
 
@@ -60,9 +68,16 @@ func main() {
 		fmt.Println("# Netscape HTTP Cookie File")
 	}
 
+	var allCookies []binarycookies.Cookie
+
 	for _, page := range pages {
 		for _, cookie := range page.Cookies {
 			if re != nil && !re.Match(cookie.Domain) {
+				continue
+			}
+
+			if flagJSON {
+				allCookies = append(allCookies, cookie)
 				continue
 			}
 
@@ -82,6 +97,15 @@ func main() {
 
 			fmt.Println(cookie.String())
 		}
+	}
+
+	if flagJSON {
+		out, err := json.Marshal(allCookies)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		fmt.Printf("%s\n", out)
 	}
 }
 
