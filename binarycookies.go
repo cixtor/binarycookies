@@ -1,6 +1,8 @@
 package binarycookies
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 	"time"
 )
@@ -64,6 +66,30 @@ type Cookie struct {
 	Value         []byte
 	Expires       time.Time
 	Creation      time.Time
+}
+
+func (c Cookie) String() string {
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "%s", c.Expires.Format(time.DateTime))
+	fmt.Fprintf(&buf, " %s", c.Domain)
+	fmt.Fprintf(&buf, " %s", c.Path)
+	fmt.Fprintf(&buf, " %s", c.Name)
+	fmt.Fprintf(&buf, " %s", c.Value)
+
+	if c.Secure {
+		fmt.Fprintf(&buf, " Secure")
+	}
+
+	if c.HttpOnly {
+		fmt.Fprintf(&buf, " HttpOnly")
+	}
+
+	if len(c.Comment) > 0 {
+		fmt.Fprintf(&buf, "/* %s */", c.Comment)
+	}
+
+	return buf.String()
 }
 
 // cookieHelperFunction defines a function signature to help readPageCookie

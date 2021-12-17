@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"time"
 
 	"github.com/cixtor/binarycookies"
 )
@@ -81,28 +80,7 @@ func main() {
 				continue
 			}
 
-			fmt.Printf(
-				"%s %s %s %s %s",
-				cookie.Expires.Format(time.DateTime),
-				cookie.Domain,
-				cookie.Path,
-				cookie.Name,
-				cookie.Value,
-			)
-
-			if cookie.Secure {
-				fmt.Printf(" Secure")
-			}
-
-			if cookie.HttpOnly {
-				fmt.Printf(" HttpOnly")
-			}
-
-			if len(cookie.Comment) > 0 {
-				fmt.Printf("/* %s */", cookie.Comment)
-			}
-
-			fmt.Println()
+			fmt.Println(cookie.String())
 		}
 	}
 }
