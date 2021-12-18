@@ -10,27 +10,25 @@ import (
 
 // Decode reads the entire file, validates and returns all cookies.
 func (b *BinaryCookies) Decode() ([]Page, error) {
-	var err error
-
-	if err = b.readSignature(); err != nil {
+	if err := b.readSignature(); err != nil {
 		return nil, err
 	}
 
-	if err = b.readPageSize(); err != nil {
+	if err := b.readPageSize(); err != nil {
 		return nil, err
 	}
 
-	if err = b.readAllPages(); err != nil {
+	if err := b.readAllPages(); err != nil {
 		return nil, err
 	}
 
-	for index := uint32(0); index < b.size; index++ {
-		if err = b.readOnePage(); err != nil {
+	for i := 0; i < int(b.size); i++ {
+		if err := b.readOnePage(); err != nil {
 			return nil, err
 		}
 	}
 
-	if err = b.readChecksum(); err != nil {
+	if err := b.readChecksum(); err != nil {
 		return nil, err
 	}
 
