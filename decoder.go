@@ -209,7 +209,7 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 // HTTP State Management Mechanism
 // https://www.ietf.org/rfc/rfc2965.txt
 //
-// Section 5.3 Implementation Limits
+// # Section 5.3 Implementation Limits
 //
 // Practical user agent implementations have limits on the number and
 // size of cookies that they can store.  In general, user agents' cookie
@@ -218,14 +218,14 @@ func (b *BinaryCookies) readPageCookie() (Cookie, error) {
 // user agents SHOULD provide each of the following minimum capabilities
 // individually, although not necessarily simultaneously:
 //
-//    *  at least 300 cookies
+//   - at least 300 cookies
 //
-//    *  at least 4096 bytes per cookie (as measured by the characters
-//       that comprise the cookie non-terminal in the syntax description
-//       of the Set-Cookie2 header, and as received in the Set-Cookie2
-//       header)
+//   - at least 4096 bytes per cookie (as measured by the characters
+//     that comprise the cookie non-terminal in the syntax description
+//     of the Set-Cookie2 header, and as received in the Set-Cookie2
+//     header)
 //
-//    *  at least 20 cookies per unique host or domain name
+//   - at least 20 cookies per unique host or domain name
 //
 // User agents created for specific purposes or for limited-capacity
 // devices SHOULD provide at least 20 cookies of 4096 bytes, to ensure
